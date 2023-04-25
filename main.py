@@ -1,3 +1,7 @@
+"""
+Script to run the SpeechT5 model for text-to-speech.
+"""
+
 import tempfile
 import numpy as np
 import soundfile as sf

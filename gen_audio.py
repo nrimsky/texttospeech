@@ -1,10 +1,22 @@
+"""
+Script to run the SpeechT5 model for text-to-speech on a book.
+Split the book into sentences and generate audio for each sentence.
+"""
+
 import numpy as np
 import torch
 from datasets import load_dataset
 import soundfile as sf
 from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
 import os
+import zipfile
 
+
+def zip_folder(folder_path, zip_path):
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                zip_file.write(os.path.join(root, file))
 
 
 def plain_text_to_sentences(filename):
@@ -16,20 +28,9 @@ def plain_text_to_sentences(filename):
 def create_audio(text, model, processor, vocoder, device, max_tokens=400):
     # Function to split text into smaller chunks
     def split_text(text, max_tokens):
-        tokens = text.split()
         chunks = []
-        current_chunk = []
-
-        for token in tokens:
-            if len(current_chunk) + len(token) + 1 > max_tokens:
-                chunks.append(' '.join(current_chunk))
-                current_chunk = []
-
-            current_chunk.append(token)
-
-        if current_chunk:
-            chunks.append(' '.join(current_chunk))
-
+        for i in range(0, len(text), max_tokens):
+            chunks.append(text[i:i + max_tokens])
         return chunks
 
     # Split the input text into smaller chunks
@@ -66,28 +67,6 @@ def create_audio(text, model, processor, vocoder, device, max_tokens=400):
     return audio_data
 
 
-
-# def create_audio(text, model, processor, vocoder, device):
-#     inputs = processor(text=text, return_tensors="pt")
-#     inputs = inputs.to(device)
-
-
-#     # load xvector containing speaker's voice characteristics from a dataset
-#     embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
-#     speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
-
-#     # Set the temperature for SpeechT5ForTextToSpeech model
-#     model.config.temperature = 0.01
-
-#     speaker_embeddings = speaker_embeddings.to(device)
-#     speech = model.generate_speech(inputs["input_ids"], speaker_embeddings, vocoder=vocoder)
-
-#     # Convert tensor to NumPy array
-#     audio_data = speech.cpu().numpy().astype(np.float32)
-#     audio_data = audio_data.reshape(-1)
-
-#     return audio_data
-
 def audio_to_mp3(audio_np, filename):
     sf.write(filename, audio_np, 16000, subtype='PCM_16')
 
@@ -119,6 +98,9 @@ def book_convert(filename, path):
     with open(os.path.join(path, 'sentences.txt'), 'w') as file:
         for sentence in text:
             file.write(sentence + ".")
+
+    # Zip the folder
+    zip_folder(path, path + '.zip')
 
 if __name__ == "__main__":
     book_convert('FoundingSales.txt', 'founding_sales')
