@@ -93,6 +93,7 @@ def book_convert(filename, path):
     for i, sentence in enumerate(text):
         audio_np = create_audio(sentence, model, processor, vocoder, device)
         audio_to_mp3(audio_np, os.path.join(path, f'sen_{i}.wav'))
+        print(f"Generated audio for sentence {i+1} of {len(text)}")
 
     # Save sentences to file
     with open(os.path.join(path, 'sentences.txt'), 'w') as file:
