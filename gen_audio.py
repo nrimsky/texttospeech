@@ -80,7 +80,7 @@ def book_convert(filename, path):
     vocoder = vocoder.to(device)
     text = plain_text_to_sentences(filename)
     text = [sentence.strip() for sentence in text]
-    text = [sentence for sentence in text if sentence != '']
+    text = [sentence+"." for sentence in text if sentence != '']
 
     # Make directory for audio files
     if not os.path.exists(path):
@@ -103,4 +103,4 @@ def book_convert(filename, path):
     zip_folder(path, path + '.zip')
 
 if __name__ == "__main__":
-    book_convert('FoundingSales.txt', 'founding_sales')
+    book_convert('FoundingSales.txt', 'founding_sales_2')
